@@ -1,0 +1,16 @@
+experiment_name: "baseline_tabular_shap"
+seed: 42
+debug_mode: true
+debug_samples: 50
+
+data:
+  dataset_name: "breast_cancer"
+  test_size: 0.2
+
+model:
+  type: "random_forest"
+  n_estimators: 100
+
+explainer:
+  method: "shap_tree"
+  output_dir: "outputs/exp_01"

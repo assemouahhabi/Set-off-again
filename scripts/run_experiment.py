@@ -1,9 +1,7 @@
 import argparse
+from logging import config
 from pathlib import Path
 import yaml
-
-breakpoint()
-
 from src.data_loader import load_data
 from src.models import get_and_train_model
 from src.explainers import compute_explanations
@@ -19,6 +17,9 @@ def main():
     )
     args = parser.parse_args()
 
+    if not args.config.exists():
+        raise FileNotFoundError(f"Configuration file not found: {args.config}")
+
     with args.config.open(encoding="utf-8") as stream:
         config = yaml.safe_load(stream)
 
@@ -28,7 +29,8 @@ def main():
 
     compute_explanations(trained_model, X_test, config)
 
-    print(f"Experiment completed: {config['experiment_name']}")
+    exp_name = config.get("experiment_name", "unnamed_experiment")
+    print(f"Experiment completed: {exp_name}")
 
 
 if __name__ == "__main__":

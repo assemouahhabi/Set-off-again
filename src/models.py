@@ -1,4 +1,47 @@
-def get_and_train_model(X_train, y_train, config):
+import numpy as np
+from sklearn.ensemble import (
+    RandomForestClassifier,
+    RandomForestClassifier,
+    GradientBoostingClassifier,
+)
+from sklearn.linear_model import LogisticRegression
+
+
+def _random_forest(params):
+    return RandomForestClassifier(**params)
+
+
+def _gradient_boosting(params):
+    return GradientBoostingClassifier(**params)
+
+
+def _logistic_regression(params):
+    return LogisticRegression(**params)
+
+
+MODELS = {
+    "random_forest": _random_forest,
+    "gradient_boosting": _gradient_boosting,
+    "logistic_regression": _logistic_regression,
+}
+
+
+def build_model(config: dict):
+    model_config = config.get("model")
+    if not model_config or "type" not in MODELS:
+        raise ValueError(
+            f"Configuration must contain a 'model' dictionary with a 'type' key."
+        )
+
+    model_type = model_config["type"]
+    if model_type not in MODELS:
+        raise ValueError(f"Unknown model: {model_type}")
+
+    params = {k: v for k, v in model_config.items() if k != "type"}
+    return MODELS[model_config["type"]](**params)
+
+
+def get_and_train_model(X_train: np.ndarray, y_train: np.ndarray, config: dict):
     """
     Train a machine learning model using the provided training data and configuration.
     Args:
@@ -8,28 +51,8 @@ def get_and_train_model(X_train, y_train, config):
     Returns:
         model: Trained machine learning model.
     """
-    from sklearn.ensemble import RandomForestClassifier
-    from sklearn.linear_model import LogisticRegression
 
-    model_type = config.get(
-        "model_type", "random_forest"
-    )  # Default model type is Random Forest
-
-    if model_type == "random_forest":
-        n_estimators = config.get("n_estimators", 100)  # Default number of trees is 100
-        max_depth = config.get(
-            "max_depth", None
-        )  # Default max depth is None (nodes are expanded until all leaves are pure)
-        model = RandomForestClassifier(
-            n_estimators=n_estimators,
-            max_depth=max_depth,
-            random_state=config.get("random_state", 42),
-        )
-    elif model_type == "logistic_regression":
-        C = config.get("C", 1.0)  # Default regularization strength is 1.0
-        model = LogisticRegression(C=C, random_state=config.get("random_state", 42))
-    else:
-        raise ValueError(f"Unsupported model type: {model_type}")
+    model = build_model(config)
 
     # Train the model
     model.fit(X_train, y_train)

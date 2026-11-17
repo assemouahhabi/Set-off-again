@@ -1,0 +1,12 @@
+en:
+# ERRORS
+  FileNotFoundError : "Configuration file not found: {config_path}"
+  InvalidModelConfig : "Configuration must contain a 'model' dictionary with a 'type' key."
+  UnsupportedModelType : "Unsupported model type for SHAP explanations: {model_type}"
+  UnknownDataset : "Unknown dataset: {dataset_name}. Choose from {available_datasets}"
+
+# LOGGING
+  RequirementsNotFound : "requirements.txt not found in {repo_dir}. Please ensure the file exists."
+  EnvironmentInfo : "Environment: {'Kaggle' if in_kaggle else 'Local'} | Root: {root_dir}"
+  LoadingCachedModel : "Loading cached model from {model_cache_path}"
+  ExperimentCompleted : "Experiment completed: {exp_name}"

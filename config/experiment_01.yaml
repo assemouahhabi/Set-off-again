@@ -8,9 +8,11 @@ data:
   test_size: 0.2
 
 model:
-  type: "random_forest"
+  type: random_forest
   n_estimators: 100
 
 explainer:
   method: "shap_tree"
   output_dir: "outputs/exp_01"
+
+out_dir: "out_dir/"

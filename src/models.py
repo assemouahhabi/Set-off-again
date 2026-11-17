@@ -1,47 +1,56 @@
+import i18n
 import numpy as np
-from sklearn.ensemble import (
-    RandomForestClassifier,
-    RandomForestClassifier,
-    GradientBoostingClassifier,
-)
-from sklearn.linear_model import LogisticRegression
+from typing import Protocol
 
 
-def _random_forest(params):
+class TrainableModel(Protocol):
+    def fit(self, X: np.ndarray, y: np.ndarray) -> object: ...
+
+
+def _random_forest(**params):
+    from sklearn.ensemble import RandomForestClassifier
+
     return RandomForestClassifier(**params)
 
 
-def _gradient_boosting(params):
+def _gradient_boosting(**params):
+    from sklearn.ensemble import GradientBoostingClassifier
+
     return GradientBoostingClassifier(**params)
 
 
-def _logistic_regression(params):
+def _logistic_regression(**params):
+    from sklearn.linear_model import LogisticRegression
+
     return LogisticRegression(**params)
+
+
+def _xgboost(**params):
+    from xgboost import XGBClassifier
+
+    return XGBClassifier(**params)
 
 
 MODELS = {
     "random_forest": _random_forest,
     "gradient_boosting": _gradient_boosting,
     "logistic_regression": _logistic_regression,
+    "xgboost": _xgboost,
 }
 
 
 def build_model(config: dict):
     model_config = config.get("model")
-    if not model_config or "type" not in MODELS:
-        raise ValueError(
-            f"Configuration must contain a 'model' dictionary with a 'type' key."
-        )
-
-    model_type = model_config["type"]
-    if model_type not in MODELS:
-        raise ValueError(f"Unknown model: {model_type}")
+    if not model_config or model_config["type"] not in MODELS:
+        raise ValueError(i18n.t("InvalidModelConfig"))
 
     params = {k: v for k, v in model_config.items() if k != "type"}
     return MODELS[model_config["type"]](**params)
 
 
-def get_and_train_model(X_train: np.ndarray, y_train: np.ndarray, config: dict):
+def train_model(
+    X_train: np.ndarray, y_train: np.ndarray, model: TrainableModel, config: dict
+):
     """
     Train a machine learning model using the provided training data and configuration.
     Args:
@@ -51,9 +60,6 @@ def get_and_train_model(X_train: np.ndarray, y_train: np.ndarray, config: dict):
     Returns:
         model: Trained machine learning model.
     """
-
-    model = build_model(config)
-
     # Train the model
     model.fit(X_train, y_train)
 

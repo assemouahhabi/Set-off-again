@@ -1,0 +1,12 @@
+fr:
+# ERREURS
+  FileNotFoundError : "Fichier de configuration introuvable : {config_path}"
+  InvalidModelConfig : "La configuration doit contenir un dictionnaire 'model' avec une clé 'type'."
+  UnsupportedModelType : "Type de modèle non supporté pour les explications SHAP : {model_type}"
+  UnknownDataset : "Jeu de données inconnu : {dataset_name}. Choisissez parmi {available_datasets}"
+
+# LOGGING
+  RequirementsNotFound : "requirements.txt non trouvé dans {repo_dir}. Veuillez vous assurer que le fichier existe."
+  EnvironmentInfo : "Environnement : {'Kaggle' si in_kaggle sinon 'Local'} | Racine : {root_dir}"
+  LoadingCachedModel : "Chargement du modèle mis en cache depuis {model_cache_path}"
+  ExperimentCompleted : "Expérience terminée : {exp_name}"

@@ -1,9 +1,10 @@
-from sklearn.datasets import load_breast_cancer, load_diabetes, load_wine
+import i18n
 from sklearn.model_selection import train_test_split
-import pandas as pd
 
 
 def _breast_cancer_to_dataframe():
+    from sklearn.datasets import load_breast_cancer
+
     """
     Load the breast cancer dataset and convert it to a pandas DataFrame.
     Returns:
@@ -14,6 +15,8 @@ def _breast_cancer_to_dataframe():
 
 
 def _load_diabetes_to_dataframe():
+    from sklearn.datasets import load_diabetes
+
     """
     Load the diabetes dataset and convert it to a pandas DataFrame.
     Returns:
@@ -24,6 +27,8 @@ def _load_diabetes_to_dataframe():
 
 
 def _load_wine_to_dataframe():
+    from sklearn.datasets import load_wine
+
     """
     Load the wine dataset and convert it to a pandas DataFrame.
     Returns:
@@ -45,18 +50,22 @@ def build_data_loader(config: dict):
     dataset_name = data_config.get("dataset_name")
     if dataset_name not in DATASETS:
         raise ValueError(
-            f"Unknown dataset: {dataset_name}. Choose from {list(DATASETS.keys())}"
+            i18n.t(
+                "UnknownDataset",
+                dataset_name=dataset_name,
+                available_datasets=list(DATASETS.keys()),
+            )
         )
 
     # Return the dataset loader function based on the dataset name
     return DATASETS[dataset_name]
 
 
-def load_data(config):
+def load_data(config: dict):
     """
-    Load the breast cancer dataset and split it into training and testing sets.
+    Load the dataset based on the configuration and split it into training and testing sets.
     Args:
-        config (dict): Configuration dictionary containing parameters for data loading.
+        config (dict): Configuration dictionary containing parameters for data loading and splitting.
     Returns:
         X_train (ndarray): Training features.
         X_test (ndarray): Testing features.

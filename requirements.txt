@@ -8,3 +8,7 @@ seaborn
 pyyaml
 python-dotenv
 torch
+# asynccontextmanager
+fastapi
+python-i18n
+python-i18n[YAML]

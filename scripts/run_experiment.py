@@ -1,37 +1,62 @@
 import argparse
-from logging import config
-from pathlib import Path
+import joblib
 import yaml
+import i18n
+from pathlib import Path
+
 from src.data_loader import load_data
-from src.models import get_and_train_model
-from src.explainers import compute_explanations
+from src.models import build_model, train_model
+from src.explainers import build_explainer, compute_explanations
+
+config_path = Path("config/experiment_01.yaml")
+i18n.load_path.append(Path("i18n"))
 
 
-def main():
+def run_pipeline(config_path: Path):
+    if not config_path.exists():
+        raise FileNotFoundError(i18n.t("FileNotFoundError", config_path=config_path))
+
+    with config_path.open(encoding="utf-8") as stream:
+        config = yaml.safe_load(stream)
+
+    # Load data
+    X_train, X_test, y_train, y_test = load_data(config)
+
+    # Check if the model is already trained and cached
+    out_dir = Path(config.get("explainer", {}).get("out_dir", "output/default"))
+    out_dir.mkdir(parents=True, exist_ok=True)
+    model_cache_path = out_dir / "trained_model.joblib"
+
+    if model_cache_path.exists() and not config.get("force_retrain", False):
+        # Load the cached model
+        print(i18n.t("LoadingCachedModel", model_cache_path=model_cache_path))
+        model = joblib.load(model_cache_path)
+    else:
+        # Build and train the model
+        model = build_model(config)
+        train_model(X_train, y_train, model, config)
+        joblib.dump(model, model_cache_path)
+
+    # Build the SHAP explainer based on the model type
+    explainer = build_explainer(model, X_train, config)
+
+    # Compute SHAP explanations for the test data
+    shap_values = compute_explanations(model, X_test, explainer, config)
+
+    exp_name = config.get("experiment_name", "unnamed_experiment")
+
+    print(i18n.t("ExperimentCompleted", exp_name=exp_name))
+
+    return model, shap_values, X_test, y_test
+
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run a SHAP experiment.")
     parser.add_argument(
         "--config",
         type=Path,
-        default=Path("config/experiment_01.yaml"),
+        default=config_path,
         help="Path to the YAML configuration file.",
     )
     args = parser.parse_args()
-
-    if not args.config.exists():
-        raise FileNotFoundError(f"Configuration file not found: {args.config}")
-
-    with args.config.open(encoding="utf-8") as stream:
-        config = yaml.safe_load(stream)
-
-    X_train, X_test, y_train, y_test = load_data(config)
-
-    trained_model = get_and_train_model(X_train, y_train, config)
-
-    compute_explanations(trained_model, X_test, config)
-
-    exp_name = config.get("experiment_name", "unnamed_experiment")
-    print(f"Experiment completed: {exp_name}")
-
-
-if __name__ == "__main__":
-    main()
+    run_pipeline(Path("config/experiment_01.yaml"))

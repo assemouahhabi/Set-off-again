@@ -1,7 +1,13 @@
-from pathlib import Path
+import i18n
 import shap
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
+from typing import Protocol
+
+
+class ExplainerObject(Protocol):
+    def shap_values(self, X: np.ndarray) -> np.ndarray: ...
 
 
 def _tree_explainer(model, X_test):
@@ -35,22 +41,23 @@ def build_explainer(model: object, X_test: np.ndarray, config: dict):
     if model_type in EXPLAINER_FACTORIES:
         return EXPLAINER_FACTORIES[model_type](model, X_test)
     else:
-        raise ValueError(f"Unsupported model type for SHAP explanations: {model_type}")
+        raise ValueError(i18n.t("UnsupportedModelType", model_type=model_type))
 
 
-def compute_explanations(model: object, X_test: np.ndarray, config: dict):
+def compute_explanations(
+    model: object, X_test: np.ndarray, explainer: ExplainerObject, config: dict
+):
     """
     Compute SHAP explanations for the provided model and test data.
     Args:
         model: Trained machine learning model.
         X_test (ndarray): Testing features.
+        explainer (ExplainerObject): SHAP explainer object.
         config (dict): Configuration dictionary containing parameters for explanation computation.
     Returns:
+        explainer: SHAP explainer object.
         shap_values: SHAP values for the test data.
     """
-
-    # Create a SHAP explainer based on the model type
-    explainer = build_explainer(model, X_test, config)
 
     # Compute SHAP values for the test data
     shap_values = explainer.shap_values(X_test)
@@ -65,7 +72,7 @@ def compute_explanations(model: object, X_test: np.ndarray, config: dict):
 
         _generate_shap_plots(shap_values, X_test, out_dir)
 
-    return shap_values
+    return explainer, shap_values
 
 
 def _generate_shap_plots(shap_values, X_test, out_dir):
